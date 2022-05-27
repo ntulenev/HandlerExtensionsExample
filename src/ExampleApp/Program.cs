@@ -1,7 +1,11 @@
+using ExampleApp.Handlers;
+using ExampleApp.Services;
+
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
+builder.Services.AddHostedService<SimpleService>();
+builder.Services.AddScoped<IHandler, SimpleHandler>();
+builder.Services.AddHealthChecks();
 var app = builder.Build();
-app.Run();
+app.UseHealthChecks("/hñ");
+await app.RunAsync().ConfigureAwait(false);
 
