@@ -3,6 +3,7 @@ using ExampleApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHostedService<SimpleService>();
+builder.Services.AddHostedService<SimplePeriodicService>();
 builder.Services.AddScoped<IHandler, SimpleHandler>();
 builder.Services.AddHealthChecks();
 var app = builder.Build();
