@@ -36,7 +36,7 @@ namespace ExampleApp.Services
         private static Func<IHandler, CancellationToken, Task> DefaultHandler() =>
         async (handler, token) =>
         {
-            await handler.HandleAsync(token).ConfigureAwait(false);
+            await handler.HandleAsync("A", token).ConfigureAwait(false);
         };
 
         private readonly IServiceScopeFactory _serviceScopeFactory;

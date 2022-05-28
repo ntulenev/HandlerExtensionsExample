@@ -2,6 +2,6 @@
 {
     public interface IHandler
     {
-        public Task HandleAsync(CancellationToken cancellationToken);
+        public Task HandleAsync(string data, CancellationToken cancellationToken);
     }
 }
