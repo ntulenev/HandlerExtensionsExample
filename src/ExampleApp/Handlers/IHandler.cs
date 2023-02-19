@@ -1,7 +1,6 @@
-﻿namespace ExampleApp.Handlers
+﻿namespace ExampleApp.Handlers;
+
+public interface IHandler
 {
-    public interface IHandler
-    {
-        public Task HandleAsync(string data, CancellationToken cancellationToken);
-    }
+    public Task HandleAsync(string data, CancellationToken cancellationToken);
 }
