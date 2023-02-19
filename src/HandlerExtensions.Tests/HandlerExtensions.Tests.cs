@@ -47,5 +47,42 @@ namespace HandlerExtensions.Tests
             // Assert
             exception.Should().BeNull();
         }
+
+        [Fact(DisplayName = "WithScopedService returns scoped delegate that runs correctly.")]
+        public async void ServiceScopeFactoryDelegateRunsCorrectly()
+        {
+            // Arrange
+            ITestHandler resultHandler = null!;
+            CancellationToken resultToken = CancellationToken.None;
+            var callCount = 0;
+            Func<ITestHandler, CancellationToken, Task> func = (handler, token) =>
+            {
+                resultHandler = handler;
+                resultToken = token;
+                callCount++;
+                return Task.CompletedTask;
+            };
+            var handlerMock = new Mock<ITestHandler>(MockBehavior.Strict);
+            var handlerTest = handlerMock.Object;
+            var serviceProviderMock = new Mock<IServiceProvider>(MockBehavior.Strict);
+            serviceProviderMock.Setup(x => x.GetService(typeof(ITestHandler))).Returns(() => handlerTest);
+            var scopeMock = new Mock<IServiceScope>(MockBehavior.Strict);
+            scopeMock.Setup(x => x.ServiceProvider).Returns(() => serviceProviderMock.Object);
+            scopeMock.Setup(x => x.Dispose());
+            var serviceScopeFactoryMock = new Mock<IServiceScopeFactory>(MockBehavior.Strict);
+            serviceScopeFactoryMock.Setup(x => x.CreateScope()).Returns(() => scopeMock.Object);
+            var serviceScopeFactory = serviceScopeFactoryMock.Object;
+            var resultFunc = Helpers.HandlerExtensions.WithScopedService(func, serviceScopeFactory);
+            using var cts = new CancellationTokenSource();
+
+            // Act
+            await resultFunc(cts.Token);
+
+            // Assert
+            resultHandler.Should().NotBeNull();
+            resultHandler.Should().Be(handlerTest);
+            resultToken.Should().Be(cts.Token);
+            callCount.Should().Be(1);
+        }
     }
 }
