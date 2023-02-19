@@ -9,6 +9,8 @@ public class SimpleHandler : IHandler
 
     public async Task HandleAsync(string data, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(data);
+
         await Task.Delay(1000, cancellationToken);
 
         _logger.LogInformation("Operation handled for data : {data} ", data);
