@@ -4,8 +4,17 @@ using Helpers;
 
 namespace ExampleApp.Services;
 
+/// <summary>
+/// Represents a simple background service that executes a default handler with a scoped service and a loop by <see cref="PeriodicTimer"/>.
+/// </summary>
 public class SimplePeriodicService : BackgroundService
 {
+
+    /// <summary>
+    /// Initializes a new instance of the SimplePeriodicService class with the specified parameters.
+    /// </summary>
+    /// <param name="serviceScopeFactory">The service scope factory to use for creating new service scopes.</param>
+    /// <param name="logger">The logger to use for logging messages.</param>
     public SimplePeriodicService(IServiceScopeFactory serviceScopeFactory, ILogger<SimplePeriodicService> logger)
     {
         _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
