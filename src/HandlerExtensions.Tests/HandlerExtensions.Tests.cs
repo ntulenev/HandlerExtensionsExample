@@ -84,5 +84,78 @@ namespace HandlerExtensions.Tests
             resultToken.Should().Be(cts.Token);
             callCount.Should().Be(1);
         }
+
+        [Fact(DisplayName = "WithLoop throws when func is null.")]
+        public void WithLoopThrowsArgumentNullExceptionForNullFunc()
+        {
+            // Act
+            var exception = Record.Exception(() => Helpers.HandlerExtensions.WithLoop(null!));
+
+            // Assert
+            exception.Should().NotBeNull().And.BeOfType<ArgumentNullException>();
+        }
+
+        [Fact(DisplayName = "WithLoop throws when func is null.")]
+        public void WithLoopCanBeCreated()
+        {
+            //Arrange
+            Func<CancellationToken, Task> func = _ => Task.CompletedTask;
+
+            // Act
+            var exception = Record.Exception(() => Helpers.HandlerExtensions.WithLoop(func));
+
+            // Assert
+            exception.Should().BeNull();
+        }
+
+        [Fact(DisplayName = "WithLoop not runs on cancelled token.")]
+        public async void WithLoopNotRunsOnCancelledToken()
+        {
+            //Arrange
+            CancellationToken resultToken = CancellationToken.None;
+            var callCount = 0;
+            Func<CancellationToken, Task> func = token =>
+            {
+                callCount++;
+                resultToken = token;
+                return Task.CompletedTask;
+            };
+            var resultFunc = Helpers.HandlerExtensions.WithLoop(func);
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            // Act
+            var exception = await Record.ExceptionAsync(async () => await resultFunc(cts.Token));
+
+            // Assert
+            exception.Should().NotBeNull().And.BeOfType<OperationCanceledException>();
+            callCount.Should().Be(0);
+            resultToken.Should().Be(CancellationToken.None);
+        }
+
+        [Fact(DisplayName = "WithLoop not runs on valid token.")]
+        public async void WithLoopNotRunsOnValidToken()
+        {
+            //Arrange
+            using var cts = new CancellationTokenSource();
+            CancellationToken resultToken = CancellationToken.None;
+            var callCount = 0;
+            Func<CancellationToken, Task> func = token =>
+            {
+                callCount++;
+                resultToken = token;
+                cts.Cancel();
+                return Task.CompletedTask;
+            };
+            var resultFunc = Helpers.HandlerExtensions.WithLoop(func);
+
+            // Act
+            var exception = await Record.ExceptionAsync(async () => await resultFunc(cts.Token));
+
+            // Assert
+            exception.Should().NotBeNull().And.BeOfType<OperationCanceledException>();
+            callCount.Should().Be(1);
+            resultToken.Should().Be(cts.Token);
+        }
     }
 }
