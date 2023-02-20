@@ -99,7 +99,7 @@ namespace HandlerExtensions.Tests
         public void WithLoopCanBeCreated()
         {
             //Arrange
-            Func<CancellationToken, Task> func = _ => Task.CompletedTask;
+            static Task func(CancellationToken _) => Task.CompletedTask;
 
             // Act
             var exception = Record.Exception(() => Helpers.HandlerExtensions.WithLoop(func));
@@ -114,12 +114,12 @@ namespace HandlerExtensions.Tests
             //Arrange
             CancellationToken resultToken = CancellationToken.None;
             var callCount = 0;
-            Func<CancellationToken, Task> func = token =>
+            Task func(CancellationToken token)
             {
                 callCount++;
                 resultToken = token;
                 return Task.CompletedTask;
-            };
+            }
             var resultFunc = Helpers.HandlerExtensions.WithLoop(func);
             using var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -140,13 +140,13 @@ namespace HandlerExtensions.Tests
             using var cts = new CancellationTokenSource();
             CancellationToken resultToken = CancellationToken.None;
             var callCount = 0;
-            Func<CancellationToken, Task> func = token =>
+            Task func(CancellationToken token)
             {
                 callCount++;
                 resultToken = token;
                 cts.Cancel();
                 return Task.CompletedTask;
-            };
+            }
             var resultFunc = Helpers.HandlerExtensions.WithLoop(func);
 
             // Act
