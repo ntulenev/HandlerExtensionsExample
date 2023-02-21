@@ -29,7 +29,9 @@ public static Func<CancellationToken, Task> WithLoop(
 ```
 
 ### Usage
-Example usage fluent helpers to simplify work with handler in background service.
+Examples of usage fluent helpers to simplify work with handler in background service.
+
+#### Scope + loop
 
 ```C#
 protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -57,5 +59,36 @@ private static Func<IHandler, CancellationToken, Task> DefaultHandler() =>
 async (handler, token) =>
 {
     await handler.HandleAsync(token).ConfigureAwait(false);
+};
+```
+
+#### Scope + loop by timer
+
+```C#
+protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+{
+    try
+    {
+        var handler = DefaultHandler()
+            .WithScopedService(_serviceScopeFactory)
+            .WithLoop(_timer);
+
+        await Task.Run(() => handler(stoppingToken), stoppingToken).ConfigureAwait(false);
+    }
+    catch (OperationCanceledException)
+    {
+        _logger.LogWarning("Processing canceled");
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Procesing stopped");
+        throw;
+    }
+}
+
+private static Func<IHandler, CancellationToken, Task> DefaultHandler() =>
+async (handler, token) =>
+{
+    await handler.HandleAsync("B", token).ConfigureAwait(false);
 };
 ```
