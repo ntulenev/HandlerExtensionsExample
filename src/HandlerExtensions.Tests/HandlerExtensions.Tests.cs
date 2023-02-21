@@ -157,5 +157,30 @@ namespace HandlerExtensions.Tests
             callCount.Should().Be(1);
             resultToken.Should().Be(cts.Token);
         }
+
+        [Fact(DisplayName = "WithLoop timer throws when func is null.")]
+        public void WithLoopTimerThrowsArgumentNullExceptionForNullFunc()
+        {
+            // Arrange
+            var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            // Act
+            var exception = Record.Exception(() => Helpers.HandlerExtensions.WithLoop(null!, timer));
+
+            // Assert
+            exception.Should().NotBeNull().And.BeOfType<ArgumentNullException>();
+        }
+
+        [Fact(DisplayName = "WithLoop timer throws when timer is null.")]
+        public void WithLoopTimerThrowsArgumentNullExceptionForNullTimer()
+        {
+            // Arrange
+            static Task func(CancellationToken _) => Task.CompletedTask;
+
+            // Act
+            var exception = Record.Exception(() => Helpers.HandlerExtensions.WithLoop(func, null!));
+
+            // Assert
+            exception.Should().NotBeNull().And.BeOfType<ArgumentNullException>();
+        }
     }
 }
