@@ -95,7 +95,7 @@ namespace HandlerExtensions.Tests
             exception.Should().NotBeNull().And.BeOfType<ArgumentNullException>();
         }
 
-        [Fact(DisplayName = "WithLoop throws when func is null.")]
+        [Fact(DisplayName = "WithLoop could be created.")]
         public void WithLoopCanBeCreated()
         {
             //Arrange
@@ -163,6 +163,7 @@ namespace HandlerExtensions.Tests
         {
             // Arrange
             var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+
             // Act
             var exception = Record.Exception(() => Helpers.HandlerExtensions.WithLoop(null!, timer));
 
@@ -181,6 +182,46 @@ namespace HandlerExtensions.Tests
 
             // Assert
             exception.Should().NotBeNull().And.BeOfType<ArgumentNullException>();
+        }
+
+        [Fact(DisplayName = "WithLoop with timer can be created.")]
+        public void WithLoopWithTimerCanBeCreated()
+        {
+            //Arrange
+            static Task func(CancellationToken _) => Task.CompletedTask;
+            var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+
+            // Act
+            var exception = Record.Exception(() => Helpers.HandlerExtensions.WithLoop(func, timer));
+
+            // Assert
+            exception.Should().BeNull();
+        }
+
+        [Fact(DisplayName = "WithLoop not runs on cancelled token.")]
+        public async void WithLoopWithTimerNotRunsOnCancelledToken()
+        {
+            //Arrange
+            CancellationToken resultToken = CancellationToken.None;
+            var callCount = 0;
+            Task func(CancellationToken token)
+            {
+                callCount++;
+                resultToken = token;
+                return Task.CompletedTask;
+            }
+            var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            var resultFunc = Helpers.HandlerExtensions.WithLoop(func, timer);
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            // Act
+            var exception = await Record.ExceptionAsync(async () => await resultFunc(cts.Token));
+
+            // Assert
+            exception.Should().NotBeNull().And.BeOfType<OperationCanceledException>();
+            callCount.Should().Be(0);
+            resultToken.Should().Be(CancellationToken.None);
         }
     }
 }
