@@ -133,8 +133,8 @@ namespace HandlerExtensions.Tests
             resultToken.Should().Be(CancellationToken.None);
         }
 
-        [Fact(DisplayName = "WithLoop not runs on valid token.")]
-        public async void WithLoopNotRunsOnValidToken()
+        [Fact(DisplayName = "WithLoop runs on valid token.")]
+        public async void WithLoopRunsOnValidToken()
         {
             //Arrange
             using var cts = new CancellationTokenSource();
@@ -222,6 +222,32 @@ namespace HandlerExtensions.Tests
             exception.Should().NotBeNull().And.BeOfType<OperationCanceledException>();
             callCount.Should().Be(0);
             resultToken.Should().Be(CancellationToken.None);
+        }
+
+        [Fact(DisplayName = "WithLoop with timer runs on valid token.")]
+        public async void WithLoopWithTimerRunsOnValidToken()
+        {
+            //Arrange
+            using var cts = new CancellationTokenSource();
+            CancellationToken resultToken = CancellationToken.None;
+            var callCount = 0;
+            var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            Task func(CancellationToken token)
+            {
+                callCount++;
+                resultToken = token;
+                cts.Cancel();
+                return Task.CompletedTask;
+            }
+            var resultFunc = Helpers.HandlerExtensions.WithLoop(func, timer);
+
+            // Act
+            var exception = await Record.ExceptionAsync(async () => await resultFunc(cts.Token));
+
+            // Assert
+            exception.Should().NotBeNull().And.BeOfType<OperationCanceledException>();
+            callCount.Should().Be(1);
+            resultToken.Should().Be(cts.Token);
         }
     }
 }
