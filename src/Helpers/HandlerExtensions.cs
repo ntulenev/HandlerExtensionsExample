@@ -3,7 +3,8 @@
 namespace Helpers
 {
     /// <summary>
-    /// Delegate-based helpers methods that simplify routine operation with handlers in Background services.
+    /// Delegate-based helpers methods that simplify routine operation
+    /// with handlers in Background services.
     /// </summary>
     public static class HandlerExtensions
     {
@@ -13,8 +14,9 @@ namespace Helpers
         /// <typeparam name="TService">Service type.</typeparam>
         /// <param name="func">Target delegate.</param>
         /// <param name="serviceScopeFactory">DI service factory.</param>
-        /// <returns>Decorated delegate with sevice from scope.</returns>
-        /// <exception cref="ArgumentNullException">If <paramref name="func"/> or <paramref name="serviceScopeFactory"/> is null.</exception>
+        /// <returns>Decorated delegate with service from scope.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="func"/>
+        /// or <paramref name="serviceScopeFactory"/> is null.</exception>
         public static Func<CancellationToken, Task> WithScopedService<TService>(
         this Func<TService, CancellationToken, Task> func,
         IServiceScopeFactory serviceScopeFactory) where TService : notnull
@@ -38,7 +40,8 @@ namespace Helpers
         /// <param name="func">Target delegate.</param>
         /// <param name="periodicTimer">Timer for the loop.</param>
         /// <returns>Decorated delegate with timer loop.</returns>
-        /// <exception cref="ArgumentNullException">If <paramref name="func"/> or <paramref name="periodicTimer"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="func"/>
+        /// or <paramref name="periodicTimer"/> is null.</exception>
         public static Func<CancellationToken, Task> WithLoop(
         this Func<CancellationToken, Task> func,
         PeriodicTimer periodicTimer)
@@ -48,15 +51,16 @@ namespace Helpers
 
             return async token =>
             {
-                while (!token.IsCancellationRequested)
+                while (true)
                 {
-                    if (await periodicTimer.WaitForNextTickAsync(token).ConfigureAwait(false))
+                    token.ThrowIfCancellationRequested();
+                    
+                    if (await periodicTimer.WaitForNextTickAsync(token)
+                                           .ConfigureAwait(false))
                     {
                         await func(token).ConfigureAwait(false);
                     }
                 }
-
-                token.ThrowIfCancellationRequested();
             };
         }
 
@@ -72,12 +76,11 @@ namespace Helpers
 
             return async token =>
             {
-                while (!token.IsCancellationRequested)
+                while (true)
                 {
+                    token.ThrowIfCancellationRequested();
                     await func(token).ConfigureAwait(false);
                 }
-
-                token.ThrowIfCancellationRequested();
             };
         }
     }
