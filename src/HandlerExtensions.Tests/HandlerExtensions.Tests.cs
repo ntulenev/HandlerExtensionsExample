@@ -52,7 +52,7 @@ public class HandlerExtensionsTests
     }
 
     [Fact(DisplayName = "WithScopedService returns scoped delegate that runs correctly.")]
-    public async void ServiceScopeFactoryDelegateRunsCorrectly()
+    public async Task ServiceScopeFactoryDelegateRunsCorrectly()
     {
         // Arrange
         ITestHandler resultHandler = null!;
@@ -117,7 +117,7 @@ public class HandlerExtensionsTests
     }
 
     [Fact(DisplayName = "WithLoop not runs on cancelled token.")]
-    public async void WithLoopNotRunsOnCancelledToken()
+    public async Task WithLoopNotRunsOnCancelledToken()
     {
         //Arrange
         CancellationToken resultToken = CancellationToken.None;
@@ -143,7 +143,7 @@ public class HandlerExtensionsTests
     }
 
     [Fact(DisplayName = "WithLoop runs on valid token.")]
-    public async void WithLoopRunsOnValidToken()
+    public async Task WithLoopRunsOnValidToken()
     {
         //Arrange
         using var cts = new CancellationTokenSource();
@@ -212,7 +212,7 @@ public class HandlerExtensionsTests
     }
 
     [Fact(DisplayName = "WithLoop not runs on cancelled token.")]
-    public async void WithLoopWithTimerNotRunsOnCancelledToken()
+    public async Task WithLoopWithTimerNotRunsOnCancelledToken()
     {
         //Arrange
         CancellationToken resultToken = CancellationToken.None;
@@ -239,7 +239,7 @@ public class HandlerExtensionsTests
     }
 
     [Fact(DisplayName = "WithLoop with timer runs on valid token.")]
-    public async void WithLoopWithTimerRunsOnValidToken()
+    public async Task WithLoopWithTimerRunsOnValidToken()
     {
         //Arrange
         using var cts = new CancellationTokenSource();
