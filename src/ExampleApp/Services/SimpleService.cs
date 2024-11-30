@@ -58,5 +58,5 @@ public class SimpleService : BackgroundService
     };
 
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<SimpleService> _logger;
+    private readonly ILogger _logger;
 }

@@ -28,8 +28,8 @@ public class SimpleHandler : IHandler
 
         await Task.Delay(1000, cancellationToken);
 
-        _logger.LogInformation("Operation handled for data : {data} ", data);
+        _logger.LogInformation("Operation handled for data : {data}", data);
     }
 
-    private readonly ILogger<SimpleHandler> _logger;
+    private readonly ILogger _logger;
 }

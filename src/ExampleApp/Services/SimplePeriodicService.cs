@@ -57,6 +57,6 @@ public class SimplePeriodicService : BackgroundService
     };
 
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<SimplePeriodicService> _logger;
+    private readonly ILogger _logger;
     private readonly PeriodicTimer _timer;
 }
