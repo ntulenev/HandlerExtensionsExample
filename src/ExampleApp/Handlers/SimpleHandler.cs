@@ -1,9 +1,9 @@
-﻿namespace ExampleApp.Handlers;
+namespace ExampleApp.Handlers;
 
 /// <summary>
 /// Implements the IHandler interface for handling data asynchronously.
 /// </summary>
-public class SimpleHandler : IHandler
+internal sealed class SimpleHandler : IHandler
 {
     /// <summary>
     /// Initializes a new instance of the SimpleHandler class.
@@ -26,9 +26,9 @@ public class SimpleHandler : IHandler
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        await Task.Delay(1000, cancellationToken);
+        await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
 
-        _logger.LogInformation("Operation handled for data : {data}", data);
+        _logger.LogInformation("Operation handled for data : {Data}", data);
     }
 
     private readonly ILogger _logger;
