@@ -1,4 +1,4 @@
-﻿using ExampleApp.Handlers;
+using ExampleApp.Handlers;
 
 using Helpers;
 
@@ -8,7 +8,7 @@ namespace ExampleApp.Services;
 /// Represents a simple background service that executes
 /// a default handler with a scoped service and a loop.
 /// </summary>
-public class SimpleService : BackgroundService
+internal sealed class SimpleService : BackgroundService
 {
 
     /// <summary>
@@ -21,15 +21,23 @@ public class SimpleService : BackgroundService
     /// serviceScopeFactory or logger is null.</exception>
 
     public SimpleService(
-        IServiceScopeFactory serviceScopeFactory, 
+        IServiceScopeFactory serviceScopeFactory,
         ILogger<SimpleService> logger)
     {
-        _serviceScopeFactory = serviceScopeFactory 
+        _serviceScopeFactory = serviceScopeFactory
                                ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    /// <summary>
+    /// Executes the background service operation asynchronously and handles cancellation and error logging.
+    /// </summary>
+    /// <remarks>This method is called by the host to run the background service. It monitors for cancellation
+    /// requests and logs warnings or errors as appropriate. Override this method to implement long-running background
+    /// tasks.</remarks>
+    /// <param name="stoppingToken">A cancellation token that can be used to signal the request to stop the operation.</param>
+    /// <returns>A task that represents the asynchronous execution operation.</returns>
+    protected async override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         try
         {
@@ -52,10 +60,7 @@ public class SimpleService : BackgroundService
     }
 
     private static Func<IHandler, CancellationToken, Task> DefaultHandler() =>
-    async (handler, token) =>
-    {
-        await handler.HandleAsync("A", token).ConfigureAwait(false);
-    };
+    async (handler, token) => await handler.HandleAsync("A", token).ConfigureAwait(false);
 
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger _logger;
