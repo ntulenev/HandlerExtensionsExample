@@ -1,4 +1,4 @@
-﻿using ExampleApp.Handlers;
+using ExampleApp.Handlers;
 
 using Helpers;
 
@@ -8,7 +8,7 @@ namespace ExampleApp.Services;
 /// Represents a simple background service that executes a
 /// default handler with a scoped service and a loop by <see cref="PeriodicTimer"/>.
 /// </summary>
-public class SimplePeriodicService : BackgroundService
+internal sealed class SimplePeriodicService : BackgroundService
 {
 
     /// <summary>
@@ -19,16 +19,24 @@ public class SimplePeriodicService : BackgroundService
     /// creating new service scopes.</param>
     /// <param name="logger">The logger to use for logging messages.</param>
     public SimplePeriodicService(
-        IServiceScopeFactory serviceScopeFactory, 
+        IServiceScopeFactory serviceScopeFactory,
         ILogger<SimplePeriodicService> logger)
     {
-        _serviceScopeFactory = serviceScopeFactory 
+        _serviceScopeFactory = serviceScopeFactory
                                ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    /// <summary>
+    /// Executes the background processing operation asynchronously until the operation is canceled.
+    /// </summary>
+    /// <remarks>This method is typically called by the host to run background work. The operation will
+    /// continue until the provided cancellation token is signaled. Exceptions other than cancellation are logged and
+    /// rethrown.</remarks>
+    /// <param name="stoppingToken">A cancellation token that can be used to signal the request to stop processing.</param>
+    /// <returns>A task that represents the asynchronous execution operation.</returns>
+    protected async override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         try
         {
@@ -36,7 +44,7 @@ public class SimplePeriodicService : BackgroundService
                 .WithScopedService(_serviceScopeFactory)
                 .WithLoop(_timer);
 
-            await Task.Run(() => handler(stoppingToken), stoppingToken) 
+            await Task.Run(() => handler(stoppingToken), stoppingToken)
                       .ConfigureAwait(false);
         }
         catch (OperationCanceledException)
@@ -51,12 +59,11 @@ public class SimplePeriodicService : BackgroundService
     }
 
     private static Func<IHandler, CancellationToken, Task> DefaultHandler() =>
-    async (handler, token) =>
-    {
-        await handler.HandleAsync("B", token).ConfigureAwait(false);
-    };
+    async (handler, token) => await handler.HandleAsync("B", token).ConfigureAwait(false);
 
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger _logger;
+#pragma warning disable CA2213 // Disposable fields should be disposed
     private readonly PeriodicTimer _timer;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 }
