@@ -15,7 +15,7 @@ public class HandlerExtensionsTests
         var serviceScopeFactory = new Mock<IServiceScopeFactory>(MockBehavior.Strict).Object;
 
         // Act
-        var exception = Record.Exception(() => 
+        var exception = Record.Exception(() =>
             Helpers.HandlerExtensions.WithScopedService<string>(null!, serviceScopeFactory));
 
         // Assert
@@ -29,7 +29,7 @@ public class HandlerExtensionsTests
         Func<string, CancellationToken, Task> func = (_, _) => Task.CompletedTask;
 
         // Act
-        var exception = Record.Exception(() => 
+        var exception = Record.Exception(() =>
             Helpers.HandlerExtensions.WithScopedService(func, null!));
 
         // Assert
@@ -44,7 +44,7 @@ public class HandlerExtensionsTests
         var serviceScopeFactory = new Mock<IServiceScopeFactory>(MockBehavior.Strict).Object;
 
         // Act
-        var exception = Record.Exception(() => 
+        var exception = Record.Exception(() =>
             Helpers.HandlerExtensions.WithScopedService(func, serviceScopeFactory));
 
         // Assert
@@ -56,7 +56,7 @@ public class HandlerExtensionsTests
     {
         // Arrange
         ITestHandler resultHandler = null!;
-        CancellationToken resultToken = CancellationToken.None;
+        var resultToken = CancellationToken.None;
         var callCount = 0;
         Func<ITestHandler, CancellationToken, Task> func = (handler, token) =>
         {
@@ -68,14 +68,14 @@ public class HandlerExtensionsTests
         var handlerMock = new Mock<ITestHandler>(MockBehavior.Strict);
         var handlerTest = handlerMock.Object;
         var serviceProviderMock = new Mock<IServiceProvider>(MockBehavior.Strict);
-        serviceProviderMock.Setup(x => 
+        serviceProviderMock.Setup(x =>
             x.GetService(typeof(ITestHandler))).Returns(() => handlerTest);
         var scopeMock = new Mock<IServiceScope>(MockBehavior.Strict);
         scopeMock.Setup(x => x.ServiceProvider)
                  .Returns(() => serviceProviderMock.Object);
         scopeMock.Setup(x => x.Dispose());
         var serviceScopeFactoryMock = new Mock<IServiceScopeFactory>(MockBehavior.Strict);
-        serviceScopeFactoryMock.Setup(x => 
+        serviceScopeFactoryMock.Setup(x =>
             x.CreateScope()).Returns(() => scopeMock.Object);
         var serviceScopeFactory = serviceScopeFactoryMock.Object;
         var resultFunc = Helpers.HandlerExtensions.WithScopedService(func, serviceScopeFactory);
@@ -95,7 +95,7 @@ public class HandlerExtensionsTests
     public void WithLoopThrowsArgumentNullExceptionForNullFunc()
     {
         // Act
-        var exception = Record.Exception(() => 
+        var exception = Record.Exception(() =>
             Helpers.HandlerExtensions.WithLoop(null!));
 
         // Assert
@@ -106,10 +106,13 @@ public class HandlerExtensionsTests
     public void WithLoopCanBeCreated()
     {
         //Arrange
-        static Task func(CancellationToken _) => Task.CompletedTask;
+        static Task func(CancellationToken _)
+        {
+            return Task.CompletedTask;
+        }
 
         // Act
-        var exception = Record.Exception(() => 
+        var exception = Record.Exception(() =>
             Helpers.HandlerExtensions.WithLoop(func));
 
         // Assert
@@ -120,7 +123,7 @@ public class HandlerExtensionsTests
     public async Task WithLoopNotRunsOnCancelledToken()
     {
         //Arrange
-        CancellationToken resultToken = CancellationToken.None;
+        var resultToken = CancellationToken.None;
         var callCount = 0;
         Task func(CancellationToken token)
         {
@@ -130,10 +133,10 @@ public class HandlerExtensionsTests
         }
         var resultFunc = Helpers.HandlerExtensions.WithLoop(func);
         using var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => 
+        var exception = await Record.ExceptionAsync(async () =>
             await resultFunc(cts.Token));
 
         // Assert
@@ -147,19 +150,21 @@ public class HandlerExtensionsTests
     {
         //Arrange
         using var cts = new CancellationTokenSource();
-        CancellationToken resultToken = CancellationToken.None;
+        var resultToken = CancellationToken.None;
         var callCount = 0;
         Task func(CancellationToken token)
         {
             callCount++;
             resultToken = token;
+#pragma warning disable CA1849 // Call async methods when in an async method
             cts.Cancel();
+#pragma warning restore CA1849 // Call async methods when in an async method
             return Task.CompletedTask;
         }
         var resultFunc = Helpers.HandlerExtensions.WithLoop(func);
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => 
+        var exception = await Record.ExceptionAsync(async () =>
             await resultFunc(cts.Token));
 
         // Assert
@@ -172,10 +177,10 @@ public class HandlerExtensionsTests
     public void WithLoopTimerThrowsArgumentNullExceptionForNullFunc()
     {
         // Arrange
-        var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
 
         // Act
-        var exception = Record.Exception(() => 
+        var exception = Record.Exception(() =>
             Helpers.HandlerExtensions.WithLoop(null!, timer));
 
         // Assert
@@ -186,10 +191,13 @@ public class HandlerExtensionsTests
     public void WithLoopTimerThrowsArgumentNullExceptionForNullTimer()
     {
         // Arrange
-        static Task func(CancellationToken _) => Task.CompletedTask;
+        static Task func(CancellationToken _)
+        {
+            return Task.CompletedTask;
+        }
 
         // Act
-        var exception = Record.Exception(() => 
+        var exception = Record.Exception(() =>
             Helpers.HandlerExtensions.WithLoop(func, null!));
 
         // Assert
@@ -200,11 +208,15 @@ public class HandlerExtensionsTests
     public void WithLoopWithTimerCanBeCreated()
     {
         //Arrange
-        static Task func(CancellationToken _) => Task.CompletedTask;
-        var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        static Task func(CancellationToken _)
+        {
+            return Task.CompletedTask;
+        }
+
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
 
         // Act
-        var exception = Record.Exception(() => 
+        var exception = Record.Exception(() =>
             Helpers.HandlerExtensions.WithLoop(func, timer));
 
         // Assert
@@ -215,7 +227,7 @@ public class HandlerExtensionsTests
     public async Task WithLoopWithTimerNotRunsOnCancelledToken()
     {
         //Arrange
-        CancellationToken resultToken = CancellationToken.None;
+        var resultToken = CancellationToken.None;
         var callCount = 0;
         Task func(CancellationToken token)
         {
@@ -223,13 +235,13 @@ public class HandlerExtensionsTests
             resultToken = token;
             return Task.CompletedTask;
         }
-        var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
         var resultFunc = Helpers.HandlerExtensions.WithLoop(func, timer);
         using var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => 
+        var exception = await Record.ExceptionAsync(async () =>
             await resultFunc(cts.Token));
 
         // Assert
@@ -243,20 +255,22 @@ public class HandlerExtensionsTests
     {
         //Arrange
         using var cts = new CancellationTokenSource();
-        CancellationToken resultToken = CancellationToken.None;
+        var resultToken = CancellationToken.None;
         var callCount = 0;
-        var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
         Task func(CancellationToken token)
         {
             callCount++;
             resultToken = token;
+#pragma warning disable CA1849 // Call async methods when in an async method
             cts.Cancel();
+#pragma warning restore CA1849 // Call async methods when in an async method
             return Task.CompletedTask;
         }
         var resultFunc = Helpers.HandlerExtensions.WithLoop(func, timer);
 
         // Act
-        var exception = await Record.ExceptionAsync(async () => 
+        var exception = await Record.ExceptionAsync(async () =>
             await resultFunc(cts.Token));
 
         // Assert
