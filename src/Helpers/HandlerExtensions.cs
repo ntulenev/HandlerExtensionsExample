@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Helpers;
 
@@ -54,7 +54,7 @@ public static class HandlerExtensions
             while (true)
             {
                 token.ThrowIfCancellationRequested();
-                    
+
                 if (await periodicTimer.WaitForNextTickAsync(token)
                         .ConfigureAwait(false))
                 {
